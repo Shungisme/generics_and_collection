@@ -22,3 +22,6 @@ Thumbs.db
 
 # Maven/Gradle wrappers and cache folders (if added later)
 .gradle/
+
+# Data files
+data/
