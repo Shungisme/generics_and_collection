@@ -7,6 +7,7 @@ import utils.FileManager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class BookService {
 	private final FileManager fileManager;
@@ -59,6 +60,20 @@ public class BookService {
 
 	public boolean isIsbnExists(String isbn) {
 		return books.stream().anyMatch(book -> book.getIsbn().equalsIgnoreCase(isbn));
+	}
+
+	public List<Book> search(String isbnQuery, String titleQuery) {
+		String isbn = isbnQuery == null ? "" : isbnQuery.trim();
+		String title = titleQuery == null ? "" : titleQuery.trim().toLowerCase();
+
+		return books.stream()
+				.filter(book -> isbn.isEmpty() || book.getIsbn().equalsIgnoreCase(isbn))
+				.filter(book -> title.isEmpty() || safeLower(book.getTitle()).contains(title))
+				.collect(Collectors.toList());
+	}
+
+	private String safeLower(String value) {
+		return value == null ? "" : value.toLowerCase();
 	}
 
 	private boolean hasActiveBorrowSlipReference(String isbn) {

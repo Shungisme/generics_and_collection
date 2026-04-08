@@ -13,6 +13,8 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -41,11 +43,14 @@ public class BookPanel extends JPanel {
 	private final JButton editButton = new JButton("Save Edit");
 	private final JButton deleteButton = new JButton("Delete Book");
 	private final JButton clearButton = new JButton("Clear Form");
+	private final JTextField searchIsbnField = new JTextField(14);
+	private final JTextField searchTitleField = new JTextField(14);
 
 	public BookPanel(BookService bookService) {
 		this.bookService = bookService;
 		setLayout(new BorderLayout(10, 10));
 		setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		add(buildSearchPanel(), BorderLayout.WEST);
 
 		tableModel = new DefaultTableModel(new Object[] {
 				"ISBN", "Title", "Author", "Publisher", "Year", "Genre", "Price", "Quantity"
@@ -73,7 +78,50 @@ public class BookPanel extends JPanel {
 		deleteButton.addActionListener(e -> deleteBook());
 		clearButton.addActionListener(e -> clearForm());
 
+		DocumentListener liveSearchListener = new DocumentListener() {
+			@Override
+			public void insertUpdate(DocumentEvent e) {
+				applySearchFilter();
+			}
+
+			@Override
+			public void removeUpdate(DocumentEvent e) {
+				applySearchFilter();
+			}
+
+			@Override
+			public void changedUpdate(DocumentEvent e) {
+				applySearchFilter();
+			}
+		};
+
+		searchIsbnField.getDocument().addDocumentListener(liveSearchListener);
+		searchTitleField.getDocument().addDocumentListener(liveSearchListener);
+
 		refreshTable(bookService.getAll());
+	}
+
+	private JPanel buildSearchPanel() {
+		JPanel panel = new JPanel(new GridBagLayout());
+		panel.setBorder(BorderFactory.createTitledBorder("Search Books"));
+
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.insets = new Insets(4, 6, 4, 6);
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		gbc.gridx = 0;
+		gbc.gridy = 0;
+		panel.add(new JLabel("ISBN (exact):"), gbc);
+
+		gbc.gridy = 1;
+		panel.add(searchIsbnField, gbc);
+
+		gbc.gridy = 2;
+		panel.add(new JLabel("Title:"), gbc);
+
+		gbc.gridy = 3;
+		panel.add(searchTitleField, gbc);
+
+		return panel;
 	}
 
 	private JPanel buildFormPanel() {
@@ -267,6 +315,7 @@ public class BookPanel extends JPanel {
 		priceField.setText("");
 		quantityField.setText("");
 		isbnField.setEditable(true);
+		applySearchFilter();
 	}
 
 	private void refreshTable(List<Book> books) {
@@ -283,5 +332,10 @@ public class BookPanel extends JPanel {
 					book.getQuantity()
 			});
 		}
+	}
+
+	private void applySearchFilter() {
+		List<Book> filtered = bookService.search(searchIsbnField.getText(), searchTitleField.getText());
+		refreshTable(filtered);
 	}
 }
