@@ -1,5 +1,6 @@
 package utils;
 
+import model.Reader;
 import model.Librarian;
 
 import java.io.BufferedReader;
@@ -10,6 +11,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -17,7 +20,9 @@ import java.util.List;
 public class FileManager {
 	private static final String DELIMITER = "|";
 	private static final String DEFAULT_DATA_DIR = "data";
+	private static final String READERS_FILE = "readers.txt";
 	private static final String LIBRARIANS_FILE = "librarians.txt";
+	private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
 	private final Path dataDirectory;
 
@@ -107,5 +112,86 @@ public class FileManager {
 		} catch (IOException e) {
 			throw new RuntimeException("Failed to save librarians", e);
 		}
+	}
+
+	public List<Reader> loadReaders() {
+		List<Reader> readers = new ArrayList<>();
+		Path filePath = dataDirectory.resolve(READERS_FILE);
+
+		try (BufferedReader reader = Files.newBufferedReader(filePath, StandardCharsets.UTF_8)) {
+			String line;
+			while ((line = reader.readLine()) != null) {
+				if (line.trim().isEmpty()) {
+					continue;
+				}
+				String[] parts = line.split("\\|", -1);
+				if (parts.length < 9) {
+					continue;
+				}
+
+				Reader item = new Reader(
+						parts[0],
+						parts[1],
+						parts[2],
+						parseDate(parts[3]),
+						parts[4],
+						parts[5],
+						parts[6],
+						parseDate(parts[7]));
+				if (!parts[8].isEmpty()) {
+					item.setCardExpiredDate(parseDate(parts[8]));
+				}
+				readers.add(item);
+			}
+		} catch (FileNotFoundException | NoSuchFileException e) {
+			return readers;
+		} catch (IOException e) {
+			throw new RuntimeException("Failed to load readers", e);
+		}
+
+		return readers;
+	}
+
+	public void saveReaders(List<Reader> readers) {
+		Path filePath = dataDirectory.resolve(READERS_FILE);
+		try {
+			Files.createDirectories(dataDirectory);
+		} catch (IOException e) {
+			throw new RuntimeException("Failed to create data directory", e);
+		}
+
+		try (BufferedWriter writer = Files.newBufferedWriter(filePath, StandardCharsets.UTF_8)) {
+			for (Reader reader : readers) {
+				String line = String.join(DELIMITER,
+						nullSafe(reader.getReaderId()),
+						nullSafe(reader.getFullName()),
+						nullSafe(reader.getIdCard()),
+						formatDate(reader.getDateOfBirth()),
+						nullSafe(reader.getGender()),
+						nullSafe(reader.getEmail()),
+						nullSafe(reader.getAddress()),
+						formatDate(reader.getCardCreatedDate()),
+						formatDate(reader.getCardExpiredDate()));
+				writer.write(line);
+				writer.newLine();
+			}
+		} catch (IOException e) {
+			throw new RuntimeException("Failed to save readers", e);
+		}
+	}
+
+	private static String formatDate(LocalDate date) {
+		return date == null ? "" : date.format(DATE_FORMATTER);
+	}
+
+	private static LocalDate parseDate(String value) {
+		if (value == null || value.trim().isEmpty()) {
+			return null;
+		}
+		return LocalDate.parse(value, DATE_FORMATTER);
+	}
+
+	private static String nullSafe(String value) {
+		return value == null ? "" : value;
 	}
 }

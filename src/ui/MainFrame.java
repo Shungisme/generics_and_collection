@@ -1,10 +1,14 @@
 package ui;
 
 import service.AuthService;
+import service.ReaderService;
 import ui.panels.DashboardPanel;
+import ui.panels.ReaderPanel;
+import utils.FileManager;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JTabbedPane;
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -25,8 +29,12 @@ public class MainFrame extends JFrame {
 		logoutButton.addActionListener(e -> logout());
 		topPanel.add(logoutButton);
 
+		JTabbedPane tabbedPane = new JTabbedPane();
+		tabbedPane.addTab("Dashboard", new DashboardPanel());
+		tabbedPane.addTab("Readers", new ReaderPanel(new ReaderService(new FileManager())));
+
 		add(topPanel, BorderLayout.NORTH);
-		add(new DashboardPanel(), BorderLayout.CENTER);
+		add(tabbedPane, BorderLayout.CENTER);
 	}
 
 	private void logout() {
