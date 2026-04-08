@@ -1,7 +1,9 @@
 package ui;
 
 import service.AuthService;
+import service.BookService;
 import service.ReaderService;
+import ui.panels.BookPanel;
 import ui.panels.DashboardPanel;
 import ui.panels.ReaderPanel;
 import utils.FileManager;
@@ -30,8 +32,10 @@ public class MainFrame extends JFrame {
 		topPanel.add(logoutButton);
 
 		JTabbedPane tabbedPane = new JTabbedPane();
+		FileManager fileManager = new FileManager();
 		tabbedPane.addTab("Dashboard", new DashboardPanel());
-		tabbedPane.addTab("Readers", new ReaderPanel(new ReaderService(new FileManager())));
+		tabbedPane.addTab("Readers", new ReaderPanel(new ReaderService(fileManager)));
+		tabbedPane.addTab("Books", new BookPanel(new BookService(fileManager)));
 
 		add(topPanel, BorderLayout.NORTH);
 		add(tabbedPane, BorderLayout.CENTER);
