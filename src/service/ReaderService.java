@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class ReaderService {
 	private final FileManager fileManager;
@@ -59,6 +60,20 @@ public class ReaderService {
 		if (removed) {
 			persist();
 		}
+	}
+
+	public List<Reader> search(String idCardQuery, String fullNameQuery) {
+		String idCard = idCardQuery == null ? "" : idCardQuery.trim().toLowerCase();
+		String fullName = fullNameQuery == null ? "" : fullNameQuery.trim().toLowerCase();
+
+		return readers.stream()
+				.filter(r -> idCard.isEmpty() || safeLower(r.getIdCard()).contains(idCard))
+				.filter(r -> fullName.isEmpty() || safeLower(r.getFullName()).contains(fullName))
+				.collect(Collectors.toList());
+	}
+
+	private String safeLower(String value) {
+		return value == null ? "" : value.toLowerCase();
 	}
 
 	private void persist() {

@@ -15,6 +15,8 @@ import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
@@ -49,10 +51,14 @@ public class ReaderPanel extends JPanel {
 	private final JButton deleteButton = new JButton("Delete Reader");
 	private final JButton clearButton = new JButton("Clear Form");
 
+	private final JTextField searchIdCardField = new JTextField(14);
+	private final JTextField searchNameField = new JTextField(14);
+
 	public ReaderPanel(ReaderService readerService) {
 		this.readerService = readerService;
 		setLayout(new BorderLayout(10, 10));
 		setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		add(buildSearchPanel(), BorderLayout.WEST);
 
 		tableModel = new DefaultTableModel(new Object[] {
 				"Reader ID", "Full Name", "ID Card", "Date of Birth", "Gender", "Email", "Address", "Card Created",
@@ -82,8 +88,51 @@ public class ReaderPanel extends JPanel {
 		deleteButton.addActionListener(e -> deleteReader());
 		clearButton.addActionListener(e -> clearForm());
 
+		DocumentListener liveSearchListener = new DocumentListener() {
+			@Override
+			public void insertUpdate(DocumentEvent e) {
+				applySearchFilter();
+			}
+
+			@Override
+			public void removeUpdate(DocumentEvent e) {
+				applySearchFilter();
+			}
+
+			@Override
+			public void changedUpdate(DocumentEvent e) {
+				applySearchFilter();
+			}
+		};
+
+		searchIdCardField.getDocument().addDocumentListener(liveSearchListener);
+		searchNameField.getDocument().addDocumentListener(liveSearchListener);
+
 		refreshTable(readerService.getAll());
 		prepareNewReaderId();
+	}
+
+	private JPanel buildSearchPanel() {
+		JPanel panel = new JPanel(new GridBagLayout());
+		panel.setBorder(BorderFactory.createTitledBorder("Search Readers"));
+
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.insets = new Insets(4, 6, 4, 6);
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		gbc.gridx = 0;
+		gbc.gridy = 0;
+		panel.add(new JLabel("ID Card:"), gbc);
+
+		gbc.gridy = 1;
+		panel.add(searchIdCardField, gbc);
+
+		gbc.gridy = 2;
+		panel.add(new JLabel("Full Name:"), gbc);
+
+		gbc.gridy = 3;
+		panel.add(searchNameField, gbc);
+
+		return panel;
 	}
 
 	private JPanel buildFormPanel() {
@@ -246,6 +295,7 @@ public class ReaderPanel extends JPanel {
 		cardCreatedDateField.setText("");
 		cardExpiredDateField.setText("");
 		prepareNewReaderId();
+		applySearchFilter();
 	}
 
 	private void prepareNewReaderId() {
@@ -267,6 +317,11 @@ public class ReaderPanel extends JPanel {
 					formatDate(reader.getCardExpiredDate())
 			});
 		}
+	}
+
+	private void applySearchFilter() {
+		List<Reader> filtered = readerService.search(searchIdCardField.getText(), searchNameField.getText());
+		refreshTable(filtered);
 	}
 
 	private String formatDate(LocalDate date) {
