@@ -103,6 +103,24 @@ public class BookService {
 		persist();
 	}
 
+	public void increaseQuantitiesForReturn(List<String> isbnList) {
+		Map<String, Integer> returnCountByIsbn = countByIsbn(isbnList);
+		for (Map.Entry<String, Integer> entry : returnCountByIsbn.entrySet()) {
+			Book book = getByIsbn(entry.getKey());
+			if (book == null) {
+				throw new IllegalArgumentException("Book does not exist: " + entry.getKey());
+			}
+		}
+
+		for (Book book : books) {
+			Integer returnCount = returnCountByIsbn.get(book.getIsbn());
+			if (returnCount != null && returnCount > 0) {
+				book.setQuantity(book.getQuantity() + returnCount);
+			}
+		}
+		persist();
+	}
+
 	private Map<String, Integer> countByIsbn(List<String> isbnList) {
 		Map<String, Integer> requestCountByIsbn = new HashMap<>();
 		for (String isbn : isbnList) {
