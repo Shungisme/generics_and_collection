@@ -1,0 +1,10 @@
+R001|Nguyen Van An|079201000111|15/05/1999|Male|an.nguyen99@gmail.com|Ha Noi|01/01/2023|01/01/2027
+R002|Tran Thi Bich|079201000112|23/09/2000|Female|bich.tran00@gmail.com|Da Nang|15/03/2022|15/03/2026
+R003|Le Quang Huy|079201000113|08/02/2001|Male|huy.le01@gmail.com|Ho Chi Minh City|10/07/2024|10/07/2028
+R004|Pham Ngoc Lan|079201000114|11/11/1998|Female|lan.pham98@gmail.com|Hue|20/11/2021|20/11/2025
+R005|Do Minh Khoa|079201000115|03/04/2002|Male|khoa.do02@gmail.com|Can Tho|05/09/2023|05/09/2027
+R006|Bui Thu Trang|079201000116|29/01/2001|Female|trang.bui01@gmail.com|Hai Phong|18/02/2024|18/02/2028
+R007|Vo Thanh Nam|079201000117|07/07/1997|Male|nam.vo97@gmail.com|Nha Trang|12/12/2022|12/12/2026
+R008|Dang My Linh|079201000118|19/08/1999|Female|linh.dang99@gmail.com|Vung Tau|01/06/2020|01/06/2024
+R009|Hoang Gia Bao|079201000119|25/12/2003|Male|bao.hoang03@gmail.com|Quy Nhon|30/08/2025|30/08/2029
+R010|Nguyen Ha Nhi|079201000120|14/10/2004|Female|nhi.nguyen04@gmail.com|Bien Hoa|25/01/2026|25/01/2030

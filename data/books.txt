@@ -1,0 +1,15 @@
+9786041234001|Clean Code|Robert C. Martin|Prentice Hall|2008|Programming|320000|5
+9786041234002|Effective Java|Joshua Bloch|Addison-Wesley|2018|Programming|450000|3
+9786041234003|Dac Nhan Tam|Dale Carnegie|Tre Publishing|2019|Self-help|98000|7
+9786041234004|Sapiens|Yuval Noah Harari|Omega Plus|2020|History|220000|4
+9786041234005|Lich Su Viet Nam Pho Thong|Tran Trong Kim|Van Hoc|2017|History|150000|2
+9786041234006|Tu Duy Nhanh va Cham|Daniel Kahneman|Alphabooks|2021|Psychology|210000|6
+9786041234007|Physics Basics|Paul Hewitt|Pearson|2016|Science|175000|1
+9786041234008|Data Structures and Algorithms|Narasimha Karumanchi|CareerMonk|2017|Programming|340000|0
+9786041234009|Kinh Te Hoc Co Ban|N. Gregory Mankiw|Hong Duc|2018|Economics|260000|8
+9786041234010|Sherlock Holmes Toan Tap|Arthur Conan Doyle|Nha Nam|2015|Literature|185000|2
+9786041234011|Atomic Habits|James Clear|Penguin|2019|Self-help|195000|10
+9786041234012|The Little Prince|Antoine de Saint-Exupery|Kim Dong|2014|Children|85000|0
+9786041234013|Harry Potter and the Philosopher's Stone|J.K. Rowling|Bloomsbury|2014|Fantasy|160000|4
+9786041234014|Deep Learning with Python|Francois Chollet|Manning|2021|Programming|520000|3
+9786041234015|Blockchain Basics|Daniel Drescher|Apress|2022|Technology|290000|0
