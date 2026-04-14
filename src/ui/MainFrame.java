@@ -8,6 +8,7 @@ import ui.panels.BookPanel;
 import ui.panels.BorrowPanel;
 import ui.panels.DashboardPanel;
 import ui.panels.ReaderPanel;
+import ui.panels.StatisticsPanel;
 import utils.FileManager;
 
 import javax.swing.JButton;
@@ -42,6 +43,7 @@ public class MainFrame extends JFrame {
 		tabbedPane.addTab("Readers", new ReaderPanel(readerService));
 		tabbedPane.addTab("Books", new BookPanel(bookService));
 		tabbedPane.addTab("Borrow", new BorrowPanel(borrowService));
+		tabbedPane.addTab("Statistics", new StatisticsPanel(readerService, bookService, borrowService));
 
 		add(topPanel, BorderLayout.NORTH);
 		add(tabbedPane, BorderLayout.CENTER);
