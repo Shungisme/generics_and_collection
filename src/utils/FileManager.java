@@ -1,5 +1,7 @@
 package utils;
 
+import model.Book;
+import model.BorrowSlip;
 import model.Reader;
 import model.Librarian;
 
@@ -21,6 +23,8 @@ public class FileManager {
 	private static final String DELIMITER = "|";
 	private static final String DEFAULT_DATA_DIR = "data";
 	private static final String READERS_FILE = "readers.txt";
+	private static final String BOOKS_FILE = "books.txt";
+	private static final String BORROW_SLIPS_FILE = "borrowslips.txt";
 	private static final String LIBRARIANS_FILE = "librarians.txt";
 	private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
@@ -178,6 +182,107 @@ public class FileManager {
 		} catch (IOException e) {
 			throw new RuntimeException("Failed to save readers", e);
 		}
+	}
+
+	public List<Book> loadBooks() {
+		List<Book> books = new ArrayList<>();
+		Path filePath = dataDirectory.resolve(BOOKS_FILE);
+
+		try (BufferedReader reader = Files.newBufferedReader(filePath, StandardCharsets.UTF_8)) {
+			String line;
+			while ((line = reader.readLine()) != null) {
+				if (line.trim().isEmpty()) {
+					continue;
+				}
+				String[] parts = line.split("\\|", -1);
+				if (parts.length < 8) {
+					continue;
+				}
+
+				books.add(new Book(
+						parts[0],
+						parts[1],
+						parts[2],
+						parts[3],
+						Integer.parseInt(parts[4]),
+						parts[5],
+						Double.parseDouble(parts[6]),
+						Integer.parseInt(parts[7])));
+			}
+		} catch (FileNotFoundException | NoSuchFileException e) {
+			return books;
+		} catch (IOException e) {
+			throw new RuntimeException("Failed to load books", e);
+		}
+
+		return books;
+	}
+
+	public void saveBooks(List<Book> books) {
+		Path filePath = dataDirectory.resolve(BOOKS_FILE);
+		try {
+			Files.createDirectories(dataDirectory);
+		} catch (IOException e) {
+			throw new RuntimeException("Failed to create data directory", e);
+		}
+
+		try (BufferedWriter writer = Files.newBufferedWriter(filePath, StandardCharsets.UTF_8)) {
+			for (Book book : books) {
+				String line = String.join(DELIMITER,
+						nullSafe(book.getIsbn()),
+						nullSafe(book.getTitle()),
+						nullSafe(book.getAuthor()),
+						nullSafe(book.getPublisher()),
+						Integer.toString(book.getYearPublished()),
+						nullSafe(book.getGenre()),
+						Double.toString(book.getPrice()),
+						Integer.toString(book.getQuantity()));
+				writer.write(line);
+				writer.newLine();
+			}
+		} catch (IOException e) {
+			throw new RuntimeException("Failed to save books", e);
+		}
+	}
+
+	public List<BorrowSlip> loadBorrowSlips() {
+		List<BorrowSlip> slips = new ArrayList<>();
+		Path filePath = dataDirectory.resolve(BORROW_SLIPS_FILE);
+
+		try (BufferedReader reader = Files.newBufferedReader(filePath, StandardCharsets.UTF_8)) {
+			String line;
+			while ((line = reader.readLine()) != null) {
+				if (line.trim().isEmpty()) {
+					continue;
+				}
+				String[] parts = line.split("\\|", -1);
+				if (parts.length < 6) {
+					continue;
+				}
+
+				List<String> isbnList = new ArrayList<>();
+				if (!parts[5].trim().isEmpty()) {
+					String[] isbnParts = parts[5].split(",");
+					for (String isbn : isbnParts) {
+						isbnList.add(isbn.trim());
+					}
+				}
+
+				slips.add(new BorrowSlip(
+						parts[0],
+						parts[1],
+						parseDate(parts[2]),
+						parseDate(parts[3]),
+						parseDate(parts[4]),
+						isbnList));
+			}
+		} catch (FileNotFoundException | NoSuchFileException e) {
+			return slips;
+		} catch (IOException e) {
+			throw new RuntimeException("Failed to load borrow slips", e);
+		}
+
+		return slips;
 	}
 
 	private static String formatDate(LocalDate date) {
