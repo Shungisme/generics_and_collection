@@ -13,6 +13,15 @@ public class Librarian {
 		setPassword(rawPassword);
 	}
 
+	public Librarian(String username, String password, boolean isHashedPassword) {
+		this.username = username;
+		if (isHashedPassword) {
+			this.password = password;
+		} else {
+			setPassword(password);
+		}
+	}
+
 	public String getUsername() {
 		return username;
 	}
@@ -26,10 +35,10 @@ public class Librarian {
 	}
 
 	public void setPassword(String rawPassword) {
-		this.password = hashPassword(rawPassword);
+		this.password = hash(rawPassword);
 	}
 
-	private String hashPassword(String rawPassword) {
+	public static String hash(String rawPassword) {
 		if (rawPassword == null) {
 			return null;
 		}
