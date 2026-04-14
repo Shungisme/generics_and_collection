@@ -1,0 +1,24 @@
+# Java build output
+out/
+bin/
+target/
+
+# Compiled classes
+*.class
+
+# Logs and temporary files
+*.log
+*.tmp
+*.swp
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE metadata
+.idea/
+*.iml
+.vscode/
+
+# Maven/Gradle wrappers and cache folders (if added later)
+.gradle/
