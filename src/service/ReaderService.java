@@ -1,26 +1,82 @@
 package service;
 
 import model.Reader;
+import utils.FileManager;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class ReaderService {
-	private final List<Reader> readers = new ArrayList<>();
-	private final Map<String, Reader> readerById = new HashMap<>();
+	private final FileManager fileManager;
+	private final List<Reader> readers;
 
-	public void addReader(Reader reader) {
-		readers.add(reader);
-		readerById.put(reader.getReaderId(), reader);
-	}
-
-	public Reader getById(String readerId) {
-		return readerById.get(readerId);
+	public ReaderService(FileManager fileManager) {
+		this.fileManager = fileManager;
+		this.readers = new ArrayList<>(fileManager.loadReaders());
 	}
 
 	public List<Reader> getAll() {
 		return new ArrayList<>(readers);
+	}
+
+	public String generateNextReaderId() {
+		int maxId = readers.stream()
+				.map(Reader::getReaderId)
+				.filter(id -> id != null && id.matches("R\\\\d+"))
+				.map(id -> Integer.parseInt(id.substring(1)))
+				.max(Comparator.naturalOrder())
+				.orElse(0);
+		return String.format("R%03d", maxId + 1);
+	}
+
+	public void addReader(Reader reader) {
+		readers.add(reader);
+		persist();
+	}
+
+	public Reader getById(String readerId) {
+		Optional<Reader> found = readers.stream()
+				.filter(r -> r.getReaderId().equals(readerId))
+				.findFirst();
+		return found.orElse(null);
+	}
+
+	public void updateReader(Reader updatedReader) {
+		for (int i = 0; i < readers.size(); i++) {
+			if (readers.get(i).getReaderId().equals(updatedReader.getReaderId())) {
+				readers.set(i, updatedReader);
+				persist();
+				return;
+			}
+		}
+		throw new IllegalArgumentException("Reader not found.");
+	}
+
+	public void deleteReader(String readerId) {
+		boolean removed = readers.removeIf(r -> r.getReaderId().equals(readerId));
+		if (removed) {
+			persist();
+		}
+	}
+
+	public List<Reader> search(String idCardQuery, String fullNameQuery) {
+		String idCard = idCardQuery == null ? "" : idCardQuery.trim().toLowerCase();
+		String fullName = fullNameQuery == null ? "" : fullNameQuery.trim().toLowerCase();
+
+		return readers.stream()
+				.filter(r -> idCard.isEmpty() || safeLower(r.getIdCard()).contains(idCard))
+				.filter(r -> fullName.isEmpty() || safeLower(r.getFullName()).contains(fullName))
+				.collect(Collectors.toList());
+	}
+
+	private String safeLower(String value) {
+		return value == null ? "" : value.toLowerCase();
+	}
+
+	private void persist() {
+		fileManager.saveReaders(readers);
 	}
 }
