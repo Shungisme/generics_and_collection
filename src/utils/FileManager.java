@@ -285,6 +285,35 @@ public class FileManager {
 		return slips;
 	}
 
+	public void saveBorrowSlips(List<BorrowSlip> slips) {
+		Path filePath = dataDirectory.resolve(BORROW_SLIPS_FILE);
+		try {
+			Files.createDirectories(dataDirectory);
+		} catch (IOException e) {
+			throw new RuntimeException("Failed to create data directory", e);
+		}
+
+		try (BufferedWriter writer = Files.newBufferedWriter(filePath, StandardCharsets.UTF_8)) {
+			for (BorrowSlip slip : slips) {
+				String isbnJoined = "";
+				if (slip.getIsbnList() != null && !slip.getIsbnList().isEmpty()) {
+					isbnJoined = String.join(",", slip.getIsbnList());
+				}
+				String line = String.join(DELIMITER,
+						nullSafe(slip.getSlipId()),
+						nullSafe(slip.getReaderId()),
+						formatDate(slip.getBorrowDate()),
+						formatDate(slip.getExpectedReturnDate()),
+						formatDate(slip.getActualReturnDate()),
+						isbnJoined);
+				writer.write(line);
+				writer.newLine();
+			}
+		} catch (IOException e) {
+			throw new RuntimeException("Failed to save borrow slips", e);
+		}
+	}
+
 	private static String formatDate(LocalDate date) {
 		return date == null ? "" : date.format(DATE_FORMATTER);
 	}
