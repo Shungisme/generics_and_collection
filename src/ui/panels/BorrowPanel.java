@@ -13,6 +13,7 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
@@ -62,13 +63,23 @@ public class BorrowPanel extends JPanel {
 	// Return slip tab
 	private final JTextField searchSlipIdField = new JTextField(14);
 	private final JTextField searchReaderIdField = new JTextField(14);
-	private final JTextField returnReaderIdField = new JTextField(14);
+	private final JButton searchReaderButton = new JButton("Search by Reader");
 	private final JTextField returnBorrowDateField = new JTextField(14);
 	private final JTextField returnExpectedDateField = new JTextField(14);
 	private final JTextField actualReturnDateField = new JTextField(14);
 	private final JButton searchSlipButton = new JButton("Search Slip");
 	private final JButton confirmReturnButton = new JButton("Confirm Return");
 	private final JButton clearReturnButton = new JButton("Clear Return Form");
+
+	private final DefaultTableModel activeSlipTableModel = new DefaultTableModel(new Object[] {
+			"Slip ID", "Borrow Date", "Expected Return", "Books"
+	}, 0) {
+		@Override
+		public boolean isCellEditable(int row, int column) {
+			return false;
+		}
+	};
+	private final JTable activeSlipTable = new JTable(activeSlipTableModel);
 
 	private final DefaultTableModel returnTableModel = new DefaultTableModel(new Object[] {
 			"ISBN", "Title", "Price", "Lost?"
@@ -113,7 +124,6 @@ public class BorrowPanel extends JPanel {
 		actualReturnDateField.setText(defaultBorrowDate.format(DATE_FORMATTER));
 
 		returnSlipIdField.setEditable(false);
-		returnReaderIdField.setEditable(false);
 		returnBorrowDateField.setEditable(false);
 		returnExpectedDateField.setEditable(false);
 		overdueDaysField.setEditable(false);
@@ -133,9 +143,23 @@ public class BorrowPanel extends JPanel {
 		clearButton.addActionListener(e -> clearForm());
 		borrowDateField.addActionListener(e -> updateExpectedReturnDate());
 
+		searchReaderButton.addActionListener(e -> searchActiveSlipsByReader());
 		searchSlipButton.addActionListener(e -> searchSlipForReturn());
+		searchSlipIdField.addActionListener(e -> searchSlipForReturn());
+		searchReaderIdField.addActionListener(e -> searchActiveSlipsByReader());
 		confirmReturnButton.addActionListener(e -> confirmReturn());
 		clearReturnButton.addActionListener(e -> clearReturnForm());
+
+		activeSlipTable.getSelectionModel().addListSelectionListener(e -> {
+			if (!e.getValueIsAdjusting()) {
+				int selectedRow = activeSlipTable.getSelectedRow();
+				if (selectedRow >= 0) {
+					String slipId = String.valueOf(activeSlipTableModel.getValueAt(selectedRow, 0));
+					searchSlipIdField.setText(slipId);
+					searchSlipForReturn();
+				}
+			}
+		});
 
 		returnTableModel.addTableModelListener(new TableModelListener() {
 			@Override
@@ -174,9 +198,25 @@ public class BorrowPanel extends JPanel {
 
 	private JPanel buildReturnSlipPanel() {
 		JPanel panel = new JPanel(new BorderLayout(10, 10));
-		panel.add(buildReturnSearchPanel(), BorderLayout.NORTH);
-		panel.add(new JScrollPane(returnTable), BorderLayout.CENTER);
-		panel.add(buildReturnFooterPanel(), BorderLayout.SOUTH);
+
+		JPanel topSection = new JPanel(new BorderLayout(8, 8));
+		topSection.setBorder(BorderFactory.createEmptyBorder(0, 0, 6, 0));
+		topSection.add(buildReturnSearchPanel(), BorderLayout.NORTH);
+		topSection.add(buildActiveSlipListPanel(), BorderLayout.CENTER);
+
+		JPanel bottomSection = new JPanel(new BorderLayout(8, 8));
+		bottomSection.setBorder(BorderFactory.createEmptyBorder(6, 0, 0, 0));
+		bottomSection.add(buildReturnDetailPanel(), BorderLayout.NORTH);
+		bottomSection.add(new JScrollPane(returnTable), BorderLayout.CENTER);
+		bottomSection.add(buildReturnFooterPanel(), BorderLayout.SOUTH);
+
+		JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, topSection, bottomSection);
+		splitPane.setResizeWeight(0.4);
+		splitPane.setDividerSize(14);
+		splitPane.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 0));
+		splitPane.setOneTouchExpandable(true);
+
+		panel.add(splitPane, BorderLayout.CENTER);
 		return panel;
 	}
 
@@ -221,19 +261,36 @@ public class BorrowPanel extends JPanel {
 
 	private JPanel buildReturnSearchPanel() {
 		JPanel panel = new JPanel(new GridBagLayout());
-		panel.setBorder(BorderFactory.createTitledBorder("Return Information"));
+		panel.setBorder(BorderFactory.createTitledBorder("Reader Lookup"));
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.insets = new Insets(4, 6, 4, 6);
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+
+		addFormRow(panel, gbc, 0, "Reader ID:", searchReaderIdField, searchReaderButton);
+
+		return panel;
+	}
+
+	private JPanel buildReturnDetailPanel() {
+		JPanel panel = new JPanel(new GridBagLayout());
+		panel.setBorder(BorderFactory.createTitledBorder("Return Slip Details"));
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.insets = new Insets(4, 6, 4, 6);
 		gbc.fill = GridBagConstraints.HORIZONTAL;
 
 		addFormRow(panel, gbc, 0, "Slip ID:", searchSlipIdField, searchSlipButton);
-		addFormRow(panel, gbc, 1, "Reader ID:", searchReaderIdField, null);
-		addFormRow(panel, gbc, 2, "Matched Slip ID:", returnSlipIdField, null);
-		addFormRow(panel, gbc, 3, "Reader ID:", returnReaderIdField, null);
-		addFormRow(panel, gbc, 4, "Borrow Date:", returnBorrowDateField, null);
-		addFormRow(panel, gbc, 5, "Expected Return Date:", returnExpectedDateField, null);
-		addFormRow(panel, gbc, 6, "Actual Return Date (dd/MM/yyyy):", actualReturnDateField, null);
+		addFormRow(panel, gbc, 1, "Matched Slip ID:", returnSlipIdField, null);
+		addFormRow(panel, gbc, 2, "Borrow Date:", returnBorrowDateField, null);
+		addFormRow(panel, gbc, 3, "Expected Return Date:", returnExpectedDateField, null);
+		addFormRow(panel, gbc, 4, "Actual Return Date (dd/MM/yyyy):", actualReturnDateField, null);
 
+		return panel;
+	}
+
+	private JPanel buildActiveSlipListPanel() {
+		JPanel panel = new JPanel(new BorderLayout(8, 8));
+		panel.setBorder(BorderFactory.createTitledBorder("Active Slips of Reader"));
+		panel.add(new JScrollPane(activeSlipTable), BorderLayout.CENTER);
 		return panel;
 	}
 
@@ -359,28 +416,33 @@ public class BorrowPanel extends JPanel {
 		String readerId = searchReaderIdField.getText() == null ? "" : searchReaderIdField.getText().trim();
 
 		if (slipId.isEmpty() && readerId.isEmpty()) {
-			showError("Enter slip ID or reader ID to search.");
+			showError("Enter slip ID or search by reader first.");
 			return;
 		}
 
+		if (slipId.isEmpty()) {
+			if (activeSlipTableModel.getRowCount() == 0) {
+				searchActiveSlipsByReader();
+				if (activeSlipTableModel.getRowCount() == 0) {
+					return;
+				}
+			}
+
+			int selectedRow = activeSlipTable.getSelectedRow();
+			if (selectedRow < 0) {
+				selectedRow = 0;
+				activeSlipTable.setRowSelectionInterval(0, 0);
+			}
+			slipId = String.valueOf(activeSlipTableModel.getValueAt(selectedRow, 0));
+			searchSlipIdField.setText(slipId);
+		}
+
 		BorrowSlip found;
-		if (!slipId.isEmpty()) {
-			found = borrowService.findActiveSlip(slipId, null);
-		} else {
-			List<BorrowSlip> activeSlips = borrowService.findActiveSlipsByReader(readerId);
-			if (activeSlips.isEmpty()) {
-				showError("No active borrow slip found for this reader.");
-				clearReturnSlipDetails();
-				return;
-			}
-			found = activeSlips.get(0);
-			if (activeSlips.size() > 1) {
-				JOptionPane.showMessageDialog(
-						this,
-						"Multiple active slips found. Showing the most recent one: " + found.getSlipId(),
-						"Information",
-						JOptionPane.INFORMATION_MESSAGE);
-			}
+		found = borrowService.findActiveSlip(slipId, readerId.isEmpty() ? null : readerId);
+		if (found == null && !readerId.isEmpty()) {
+			showError("No active borrow slip found for the given slip ID and reader ID.");
+			clearReturnSlipDetails();
+			return;
 		}
 
 		if (found == null) {
@@ -394,9 +456,38 @@ public class BorrowPanel extends JPanel {
 		refreshFeeSummary();
 	}
 
+	private void searchActiveSlipsByReader() {
+		String readerId = searchReaderIdField.getText() == null ? "" : searchReaderIdField.getText().trim();
+		if (readerId.isEmpty()) {
+			showError("Reader ID is required to search slips.");
+			return;
+		}
+
+		List<BorrowSlip> activeSlips = borrowService.findActiveSlipsByReader(readerId);
+		activeSlipTableModel.setRowCount(0);
+
+		if (activeSlips.isEmpty()) {
+			showError("No active borrow slip found for this reader.");
+			clearReturnSlipDetails();
+			return;
+		}
+
+		for (BorrowSlip slip : activeSlips) {
+			int books = slip.getIsbnList() == null ? 0 : slip.getIsbnList().size();
+			activeSlipTableModel.addRow(new Object[] {
+					slip.getSlipId(),
+					formatDate(slip.getBorrowDate()),
+					formatDate(slip.getExpectedReturnDate()),
+					books
+			});
+		}
+
+		activeSlipTable.setRowSelectionInterval(0, 0);
+	}
+
 	private void populateReturnSlipDetails(BorrowSlip slip) {
 		returnSlipIdField.setText(slip.getSlipId());
-		returnReaderIdField.setText(slip.getReaderId());
+		searchReaderIdField.setText(slip.getReaderId());
 		returnBorrowDateField.setText(formatDate(slip.getBorrowDate()));
 		returnExpectedDateField.setText(formatDate(slip.getExpectedReturnDate()));
 		actualReturnDateField.setText(formatDate(LocalDate.now()));
@@ -489,13 +580,13 @@ public class BorrowPanel extends JPanel {
 	private void clearReturnForm() {
 		searchSlipIdField.setText("");
 		searchReaderIdField.setText("");
+		activeSlipTableModel.setRowCount(0);
 		clearReturnSlipDetails();
 	}
 
 	private void clearReturnSlipDetails() {
 		selectedReturnSlip = null;
 		returnSlipIdField.setText("");
-		returnReaderIdField.setText("");
 		returnBorrowDateField.setText("");
 		returnExpectedDateField.setText("");
 		actualReturnDateField.setText(formatDate(LocalDate.now()));

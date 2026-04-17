@@ -110,6 +110,7 @@ public class ReaderPanel extends JPanel {
 
 		refreshTable(readerService.getAll());
 		prepareNewReaderId();
+		readerIdField.setEditable(true);
 	}
 
 	private JPanel buildSearchPanel() {
@@ -139,7 +140,6 @@ public class ReaderPanel extends JPanel {
 		JPanel panel = new JPanel(new GridBagLayout());
 		panel.setBorder(BorderFactory.createTitledBorder("Reader Information"));
 
-		readerIdField.setEditable(false);
 		cardExpiredDateField.setEditable(false);
 
 		GridBagConstraints gbc = new GridBagConstraints();
@@ -231,7 +231,7 @@ public class ReaderPanel extends JPanel {
 	}
 
 	private Reader buildReaderFromForm(boolean isNew) {
-		String readerId = isNew ? readerService.generateNextReaderId() : valueOf(readerIdField, "Reader ID");
+		String readerId = valueOf(readerIdField, "Reader ID");
 		String fullName = valueOf(fullNameField, "Full Name");
 		String idCard = valueOf(idCardField, "ID Card");
 		LocalDate dateOfBirth = parseRequiredDate(dateOfBirthField.getText(), "Date of Birth");
@@ -239,6 +239,10 @@ public class ReaderPanel extends JPanel {
 		String email = valueOf(emailField, "Email");
 		String address = valueOf(addressField, "Address");
 		LocalDate cardCreatedDate = parseRequiredDate(cardCreatedDateField.getText(), "Card Created Date");
+
+		if (isNew && readerService.isReaderIdExists(readerId)) {
+			throw new IllegalArgumentException("Reader ID already exists.");
+		}
 
 		if (!EMAIL_PATTERN.matcher(email).matches()) {
 			throw new IllegalArgumentException("Email format is invalid.");
@@ -273,6 +277,7 @@ public class ReaderPanel extends JPanel {
 		if (row < 0) {
 			return;
 		}
+		readerIdField.setEditable(false);
 		readerIdField.setText(tableModel.getValueAt(row, 0).toString());
 		fullNameField.setText(tableModel.getValueAt(row, 1).toString());
 		idCardField.setText(tableModel.getValueAt(row, 2).toString());
@@ -286,6 +291,7 @@ public class ReaderPanel extends JPanel {
 
 	private void clearForm() {
 		readerTable.clearSelection();
+		readerIdField.setEditable(true);
 		fullNameField.setText("");
 		idCardField.setText("");
 		dateOfBirthField.setText("");
