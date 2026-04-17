@@ -6,7 +6,6 @@ import service.BorrowService;
 import service.ReaderService;
 import ui.panels.BookPanel;
 import ui.panels.BorrowPanel;
-import ui.panels.DashboardPanel;
 import ui.panels.ReaderPanel;
 import ui.panels.StatisticsPanel;
 import utils.FileManager;
@@ -39,7 +38,6 @@ public class MainFrame extends JFrame {
 		ReaderService readerService = new ReaderService(fileManager);
 		BookService bookService = new BookService(fileManager);
 		BorrowService borrowService = new BorrowService(fileManager, readerService, bookService);
-		tabbedPane.addTab("Dashboard", new DashboardPanel());
 		tabbedPane.addTab("Readers", new ReaderPanel(readerService));
 		tabbedPane.addTab("Books", new BookPanel(bookService));
 		tabbedPane.addTab("Borrow", new BorrowPanel(borrowService));
