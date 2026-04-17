@@ -123,6 +123,9 @@ public class BorrowService {
 		if (!normalizedSlipId.isEmpty()) {
 			BorrowSlip slip = getById(normalizedSlipId);
 			if (slip != null && slip.getActualReturnDate() == null) {
+				if (!normalizedReaderId.isEmpty() && !normalizedReaderId.equalsIgnoreCase(slip.getReaderId())) {
+					return null;
+				}
 				return slip;
 			}
 			return null;
